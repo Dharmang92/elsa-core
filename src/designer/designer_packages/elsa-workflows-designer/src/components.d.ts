@@ -5,7 +5,7 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { InputDefinition, OutputDefinition, WorkflowDefinition, WorkflowDefinitionSummary } from "./modules/workflow-definitions/models/entities";
+import { InputDefinition, OutputDefinition, WorkflowDefinition as WorkflowDefinition1, WorkflowDefinitionSummary } from "./modules/workflow-definitions/models/entities";
 import { Activity, ActivityDeletedArgs, ActivitySelectedArgs, ChildActivitySelectedArgs, ContainerSelectedArgs, EditChildActivityArgs, GraphUpdatedArgs, IntellisenseContext, SelectList, SelectListItem, TabChangedArgs, TabDefinition, Variable, WorkflowExecutionLogRecord, WorkflowInstance, WorkflowInstanceSummary, WorkflowUpdatedArgs } from "./models";
 import { ActivityUpdatedArgs, DeleteActivityRequestedArgs, Widget, WorkflowDefinitionPropsUpdatedArgs, WorkflowDefinitionUpdatedArgs } from "./modules/workflow-definitions/models/ui";
 import { Button } from "./components/shared/button-group/models";
@@ -17,6 +17,7 @@ import { AddActivityArgs, FlowchartPathItem, LayoutDirection, RenameActivityArgs
 import { OutNode } from "@antv/layout";
 import { ActivityNodeShape } from "./modules/flowchart/shapes";
 import { PanelActionClickArgs, PanelActionDefinition } from "./components/shared/form-panel/models";
+import { WorkflowDefinition } from "./interfaces";
 import { ExpressionChangedArs } from "./components/shared/input-control-switch/input-control-switch";
 import { SignedInArgs } from "./modules/login/models";
 import { ModalActionClickArgs, ModalActionDefinition, ModalDialogInstance } from "./components/shared/modal-dialog/models";
@@ -128,6 +129,7 @@ export namespace Components {
         "selectedTabIndex"?: number;
         "subTitle": string;
         "tabs": Array<TabDefinition>;
+        "workflowDefinition"?: WorkflowDefinition;
     }
     interface ElsaHomePage {
     }
@@ -264,14 +266,14 @@ export namespace Components {
     }
     interface ElsaVariablePickerInput {
         "inputContext": ActivityInputContext;
-        "workflowDefinition": WorkflowDefinition;
+        "workflowDefinition": WorkflowDefinition1;
     }
     interface ElsaVariablesEditor {
         "variables"?: Array<Variable>;
     }
     interface ElsaVariablesViewer {
         "variables"?: Array<Variable>;
-        "workflowDefinition": WorkflowDefinition;
+        "workflowDefinition": WorkflowDefinition1;
         "workflowInstance": WorkflowInstance;
     }
     interface ElsaWidgets {
@@ -279,12 +281,12 @@ export namespace Components {
     }
     interface ElsaWorkflowContextProviderCheckList {
         "descriptors": Array<WorkflowContextProviderDescriptor>;
-        "workflowDefinition": WorkflowDefinition;
+        "workflowDefinition": WorkflowDefinition1;
     }
     interface ElsaWorkflowContextProviderTypePickerInput {
         "descriptors": Array<WorkflowContextProviderDescriptor>;
         "inputContext": ActivityInputContext;
-        "workflowDefinition": WorkflowDefinition;
+        "workflowDefinition": WorkflowDefinition1;
     }
     interface ElsaWorkflowDefinitionActivityVersionSettings {
         "renderContext": RenderActivityPropsContext;
@@ -293,15 +295,15 @@ export namespace Components {
     }
     interface ElsaWorkflowDefinitionEditor {
         "getFlowchart": () => Promise<HTMLElsaFlowchartElement>;
-        "getWorkflowDefinition": () => Promise<WorkflowDefinition>;
-        "importWorkflow": (workflowDefinition: WorkflowDefinition) => Promise<void>;
+        "getWorkflowDefinition": () => Promise<WorkflowDefinition1>;
+        "importWorkflow": (workflowDefinition: WorkflowDefinition1) => Promise<void>;
         "loadWorkflowVersions": () => Promise<void>;
         "monacoLibPath": string;
-        "newWorkflow": () => Promise<WorkflowDefinition>;
+        "newWorkflow": () => Promise<WorkflowDefinition1>;
         "registerActivityDrivers": (register: (registry: ActivityDriverRegistry) => void) => Promise<void>;
         "updateActivity": (activity: Activity) => Promise<void>;
-        "updateWorkflowDefinition": (workflowDefinition: WorkflowDefinition) => Promise<void>;
-        "workflowDefinition"?: WorkflowDefinition;
+        "updateWorkflowDefinition": (workflowDefinition: WorkflowDefinition1) => Promise<void>;
+        "workflowDefinition"?: WorkflowDefinition1;
     }
     interface ElsaWorkflowDefinitionEditorToolbar {
         "zoomToFit": () => Promise<void>;
@@ -323,34 +325,34 @@ export namespace Components {
     interface ElsaWorkflowDefinitionPropertiesEditor {
         "hide": () => Promise<void>;
         "show": () => Promise<void>;
-        "workflowDefinition"?: WorkflowDefinition;
-        "workflowVersions": Array<WorkflowDefinition>;
+        "workflowDefinition"?: WorkflowDefinition1;
+        "workflowVersions": Array<WorkflowDefinition1>;
     }
     interface ElsaWorkflowDefinitionVersionHistory {
-        "selectedVersion": WorkflowDefinition;
+        "selectedVersion": WorkflowDefinition1;
         "serverUrl": string;
-        "workflowVersions": Array<WorkflowDefinition>;
+        "workflowVersions": Array<WorkflowDefinition1>;
     }
     interface ElsaWorkflowInstanceBrowser {
     }
     interface ElsaWorkflowInstanceProperties {
         "hide": () => Promise<void>;
         "show": () => Promise<void>;
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
         "workflowInstance"?: WorkflowInstance;
     }
     interface ElsaWorkflowInstanceViewer {
         "getCanvas": () => Promise<HTMLElsaFlowchartElement>;
-        "getWorkflow": () => Promise<WorkflowDefinition>;
-        "importWorkflow": (workflowDefinition: WorkflowDefinition, workflowInstance: WorkflowInstance) => Promise<void>;
+        "getWorkflow": () => Promise<WorkflowDefinition1>;
+        "importWorkflow": (workflowDefinition: WorkflowDefinition1, workflowInstance: WorkflowInstance) => Promise<void>;
         "monacoLibPath": string;
         "registerActivityDrivers": (register: (registry: ActivityDriverRegistry) => void) => Promise<void>;
-        "updateWorkflowDefinition": (workflowDefinition: WorkflowDefinition) => Promise<void>;
-        "workflowDefinition": WorkflowDefinition;
+        "updateWorkflowDefinition": (workflowDefinition: WorkflowDefinition1) => Promise<void>;
+        "workflowDefinition": WorkflowDefinition1;
         "workflowInstance": WorkflowInstance;
     }
     interface ElsaWorkflowJournal {
-        "workflowDefinition": WorkflowDefinition;
+        "workflowDefinition": WorkflowDefinition1;
         "workflowInstance": WorkflowInstance;
     }
     interface ElsaWorkflowNavigator {
@@ -1076,6 +1078,7 @@ declare namespace LocalJSX {
         "selectedTabIndex"?: number;
         "subTitle"?: string;
         "tabs"?: Array<TabDefinition>;
+        "workflowDefinition"?: WorkflowDefinition;
     }
     interface ElsaHomePage {
     }
@@ -1219,7 +1222,7 @@ declare namespace LocalJSX {
     }
     interface ElsaVariablePickerInput {
         "inputContext"?: ActivityInputContext;
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
     }
     interface ElsaVariablesEditor {
         "onVariablesChanged"?: (event: ElsaVariablesEditorCustomEvent<Variable[]>) => void;
@@ -1227,7 +1230,7 @@ declare namespace LocalJSX {
     }
     interface ElsaVariablesViewer {
         "variables"?: Array<Variable>;
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
         "workflowInstance"?: WorkflowInstance;
     }
     interface ElsaWidgets {
@@ -1235,13 +1238,13 @@ declare namespace LocalJSX {
     }
     interface ElsaWorkflowContextProviderCheckList {
         "descriptors"?: Array<WorkflowContextProviderDescriptor>;
-        "onWorkflowDefinitionChanged"?: (event: ElsaWorkflowContextProviderCheckListCustomEvent<WorkflowDefinition>) => void;
-        "workflowDefinition"?: WorkflowDefinition;
+        "onWorkflowDefinitionChanged"?: (event: ElsaWorkflowContextProviderCheckListCustomEvent<WorkflowDefinition1>) => void;
+        "workflowDefinition"?: WorkflowDefinition1;
     }
     interface ElsaWorkflowContextProviderTypePickerInput {
         "descriptors"?: Array<WorkflowContextProviderDescriptor>;
         "inputContext"?: ActivityInputContext;
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
     }
     interface ElsaWorkflowDefinitionActivityVersionSettings {
         "renderContext"?: RenderActivityPropsContext;
@@ -1253,7 +1256,7 @@ declare namespace LocalJSX {
     interface ElsaWorkflowDefinitionEditor {
         "monacoLibPath"?: string;
         "onWorkflowUpdated"?: (event: ElsaWorkflowDefinitionEditorCustomEvent<WorkflowDefinitionUpdatedArgs>) => void;
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
     }
     interface ElsaWorkflowDefinitionEditorToolbar {
         "onAutoLayout"?: (event: ElsaWorkflowDefinitionEditorToolbarCustomEvent<LayoutDirection>) => void;
@@ -1277,36 +1280,36 @@ declare namespace LocalJSX {
         "inputContext"?: ActivityInputContext;
     }
     interface ElsaWorkflowDefinitionPropertiesEditor {
-        "onDeleteVersionClicked"?: (event: ElsaWorkflowDefinitionPropertiesEditorCustomEvent<WorkflowDefinition>) => void;
-        "onRevertVersionClicked"?: (event: ElsaWorkflowDefinitionPropertiesEditorCustomEvent<WorkflowDefinition>) => void;
-        "onVersionSelected"?: (event: ElsaWorkflowDefinitionPropertiesEditorCustomEvent<WorkflowDefinition>) => void;
+        "onDeleteVersionClicked"?: (event: ElsaWorkflowDefinitionPropertiesEditorCustomEvent<WorkflowDefinition1>) => void;
+        "onRevertVersionClicked"?: (event: ElsaWorkflowDefinitionPropertiesEditorCustomEvent<WorkflowDefinition1>) => void;
+        "onVersionSelected"?: (event: ElsaWorkflowDefinitionPropertiesEditorCustomEvent<WorkflowDefinition1>) => void;
         "onWorkflowPropsUpdated"?: (event: ElsaWorkflowDefinitionPropertiesEditorCustomEvent<WorkflowDefinitionPropsUpdatedArgs>) => void;
-        "workflowDefinition"?: WorkflowDefinition;
-        "workflowVersions"?: Array<WorkflowDefinition>;
+        "workflowDefinition"?: WorkflowDefinition1;
+        "workflowVersions"?: Array<WorkflowDefinition1>;
     }
     interface ElsaWorkflowDefinitionVersionHistory {
-        "onDeleteVersionClicked"?: (event: ElsaWorkflowDefinitionVersionHistoryCustomEvent<WorkflowDefinition>) => void;
-        "onRevertVersionClicked"?: (event: ElsaWorkflowDefinitionVersionHistoryCustomEvent<WorkflowDefinition>) => void;
-        "onVersionSelected"?: (event: ElsaWorkflowDefinitionVersionHistoryCustomEvent<WorkflowDefinition>) => void;
-        "selectedVersion"?: WorkflowDefinition;
+        "onDeleteVersionClicked"?: (event: ElsaWorkflowDefinitionVersionHistoryCustomEvent<WorkflowDefinition1>) => void;
+        "onRevertVersionClicked"?: (event: ElsaWorkflowDefinitionVersionHistoryCustomEvent<WorkflowDefinition1>) => void;
+        "onVersionSelected"?: (event: ElsaWorkflowDefinitionVersionHistoryCustomEvent<WorkflowDefinition1>) => void;
+        "selectedVersion"?: WorkflowDefinition1;
         "serverUrl"?: string;
-        "workflowVersions"?: Array<WorkflowDefinition>;
+        "workflowVersions"?: Array<WorkflowDefinition1>;
     }
     interface ElsaWorkflowInstanceBrowser {
         "onWorkflowInstanceSelected"?: (event: ElsaWorkflowInstanceBrowserCustomEvent<WorkflowInstanceSummary>) => void;
     }
     interface ElsaWorkflowInstanceProperties {
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
         "workflowInstance"?: WorkflowInstance;
     }
     interface ElsaWorkflowInstanceViewer {
         "monacoLibPath"?: string;
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
         "workflowInstance"?: WorkflowInstance;
     }
     interface ElsaWorkflowJournal {
         "onJournalItemSelected"?: (event: ElsaWorkflowJournalCustomEvent<JournalItemSelectedArgs>) => void;
-        "workflowDefinition"?: WorkflowDefinition;
+        "workflowDefinition"?: WorkflowDefinition1;
         "workflowInstance"?: WorkflowInstance;
     }
     interface ElsaWorkflowNavigator {
