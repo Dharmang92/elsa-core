@@ -35,6 +35,7 @@ import FlowchartTunnel, { FlowchartState } from './state';
 import { WorkflowDefinition, WorkflowDefinitionSummary } from '../../interfaces';
 import { WorkflowDefinitionsApi } from '../workflow-definitions/services/api';
 import studioComponentStore from '../../data/studio-component-store';
+import workflowStore from '../../data/workflow-store';
 
 const FlowchartTypeName = 'Elsa.Flowchart';
 
@@ -717,6 +718,7 @@ export class FlowchartComponent {
     const data = await this.workflowDefinitionsApi.get({
       definitionId: activity.workflowDefinitionId,
     });
+    workflowStore.childWorkflowDefinitionId = activity.workflowDefinitionId;
     this.showSubProcessWorkflow(data);
   };
 

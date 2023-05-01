@@ -81,7 +81,6 @@ export class WorkflowDefinitionPropertiesEditor {
         subTitle={subTitle}
         tabs={tabs}
         selectedTabIndex={this.selectedTabIndex}
-        workflowDefinition={this.workflowDefinition}
         onSelectedTabIndexChanged={e => this.onSelectedTabIndexChanged(e)}
       />
     );

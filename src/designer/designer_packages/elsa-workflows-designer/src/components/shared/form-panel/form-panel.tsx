@@ -4,6 +4,7 @@ import { isNullOrWhitespace } from '../../../utils';
 import { PanelActionClickArgs, PanelActionDefinition, PanelActionType } from './models';
 import { WorkflowDefinition } from '../../../interfaces';
 import studioComponentStore from '../../../data/studio-component-store';
+import workflowStore from '../../../data/workflow-store';
 import Container from 'typedi';
 import { WorkflowDefinitionsApi } from '../../../modules/workflow-definitions/services/api';
 
@@ -11,7 +12,6 @@ import { WorkflowDefinitionsApi } from '../../../modules/workflow-definitions/se
   tag: 'elsa-form-panel',
 })
 export class FormPanel {
-  private parentWorkflowDefinitionId: string;
   private workflowDefinitionsApi: WorkflowDefinitionsApi;
 
   @Prop() public mainTitle: string;
@@ -28,10 +28,6 @@ export class FormPanel {
 
   constructor() {
     this.workflowDefinitionsApi = Container.get(WorkflowDefinitionsApi);
-
-    if (localStorage.getItem('parentWorkflowDefinitionId')) {
-      this.parentWorkflowDefinitionId = localStorage.getItem('parentWorkflowDefinitionId');
-    }
   }
 
   public render() {
@@ -52,8 +48,9 @@ export class FormPanel {
 
   private async backToParentWorkflow() {
     const data = await this.workflowDefinitionsApi.get({
-      definitionId: this.parentWorkflowDefinitionId,
+      definitionId: workflowStore.parentWorkflowDefinitionId,
     });
+    workflowStore.childWorkflowDefinitionId = workflowStore.parentWorkflowDefinitionId;
     this.showSubProcessWorkflow(data);
   }
 
@@ -68,7 +65,6 @@ export class FormPanel {
     const mainTitle = this.mainTitle;
     const subTitle = this.subTitle;
     const orientation = this.orientation;
-    const parentWorkflowDefinitionId = this.parentWorkflowDefinitionId;
 
     return (
       <div class="absolute inset-0 overflow-hidden">
@@ -81,7 +77,7 @@ export class FormPanel {
                     <h2 class="text-lg font-medium text-gray-900">{mainTitle}</h2>
                     {!isNullOrWhitespace(subTitle) ? <h3 class="text-sm text-gray-700">{subTitle}</h3> : undefined}
                   </div>
-                  {this.workflowDefinition.definitionId != parentWorkflowDefinitionId ? (
+                  {workflowStore.childWorkflowDefinitionId && workflowStore.parentWorkflowDefinitionId != workflowStore.childWorkflowDefinitionId ? (
                     <button class="btn btn-primary" onClick={() => this.backToParentWorkflow()}>
                       Back to Parent Workflow
                     </button>

@@ -22,6 +22,7 @@ import NotificationService from '../../notifications/notification-service';
 import { uuid } from '@antv/x6/es/util/string/uuid';
 import { DropdownButtonItem } from '../../../components/shared/dropdown-button/models';
 import { NotificationDisplayType } from '../../notifications/models';
+import workflowStore from '../../../data/workflow-store';
 
 const FlowchartTypeName = 'Elsa.Flowchart';
 
@@ -206,7 +207,9 @@ export class WorkflowDefinitionsPlugin implements Plugin {
   private onWorkflowDefinitionSelected = async (e: CustomEvent<WorkflowDefinitionSummary>) => {
     const definitionId = e.detail.definitionId;
     const workflowDefinition = await this.api.get({ definitionId });
-    localStorage.setItem('parentWorkflowDefinitionId', definitionId);
+
+    workflowStore.parentWorkflowDefinitionId = definitionId;
+    workflowStore.childWorkflowDefinitionId = '';
 
     this.showWorkflowDefinitionEditor(workflowDefinition);
     this.modalDialogService.hide(this.workflowDefinitionBrowserInstance);
