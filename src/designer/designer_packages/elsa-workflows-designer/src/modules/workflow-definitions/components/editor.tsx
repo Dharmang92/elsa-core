@@ -52,6 +52,7 @@ export class WorkflowDefinitionEditor {
   @State() private workflowDefinitionState: WorkflowDefinition;
   @State() private selectedActivity?: Activity;
   @State() private workflowVersions: Array<WorkflowDefinition> = [];
+  @State() private isWorkflowVisible: boolean = false;
 
   @Watch('monacoLibPath')
   private handleMonacoLibPath(value: string) {
@@ -324,8 +325,15 @@ export class WorkflowDefinitionEditor {
     await this.importWorkflow(workflowDefinition);
   };
 
+  private toggleWorkflowView(e: Event) {
+    const checkBox = e.target as HTMLInputElement;
+    const isChecked = checkBox.checked;
+    this.isWorkflowVisible = isChecked;
+  }
+
   render() {
     const workflowDefinition = this.workflowDefinitionState;
+    const isWorkflowVisible = this.isWorkflowVisible;
 
     const state: WorkflowDefinitionState = {
       workflowDefinition: this.workflowDefinitionState
@@ -350,11 +358,22 @@ export class WorkflowDefinitionEditor {
             onGraphUpdated={e => this.onGraphUpdated(e)}
             onDragOver={e => this.onDragOver(e)}
             onDrop={e => this.onDrop(e)}/>
-          <elsa-panel
+
+          {isWorkflowVisible ? <elsa-panel
             class="elsa-workflow-editor-container z-30"
             position={PanelPosition.Right}
             onExpandedStateChanged={e => this.onWorkflowEditorPanelStateChanged(e.detail)}>
             <div class="object-editor-container">
+              <div class="flex space-x-2 items-center z-10 absolute" style={{right: '1rem', top: '0.5rem'}}>
+                <input
+                  id="workflowToggler"
+                  type="checkbox"
+                  checked={isWorkflowVisible}
+                  onChange={e => this.toggleWorkflowView(e)}
+                  class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+                <label htmlFor="workflowToggler" class="cursor-pointer select-none font-medium text-gray-700">Show Workflow Properties</label>
+              </div>
               <elsa-workflow-definition-properties-editor
                 workflowDefinition={this.workflowDefinitionState}
                 workflowVersions={this.workflowVersions}
@@ -364,15 +383,24 @@ export class WorkflowDefinitionEditor {
                 onRevertVersionClicked={e => this.onRevertVersionClicked(e)}
               />
             </div>
-          </elsa-panel>
-          <elsa-panel
-            class="elsa-activity-editor-container"
-            position={PanelPosition.Bottom}
-            onExpandedStateChanged={e => this.onActivityEditorPanelStateChanged(e.detail)}>
-            <div class="activity-editor-container">
-              {this.renderSelectedObject()}
-            </div>
-          </elsa-panel>
+            </elsa-panel> : <elsa-panel
+              class="elsa-workflow-editor-container"
+              position={PanelPosition.Right}
+              onExpandedStateChanged={e => this.onActivityEditorPanelStateChanged(e.detail)}>
+              <div class="flex space-x-2 items-center z-10 absolute" style={{right: '1rem', top: '0.5rem'}}>
+                <input
+                  id="workflowToggler"
+                  type="checkbox"
+                  checked={isWorkflowVisible}
+                  onChange={e => this.toggleWorkflowView(e)}
+                  class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+                <label htmlFor="workflowToggler" class="cursor-pointer select-none font-medium text-gray-700">Show Workflow Properties</label>
+              </div>
+              <div class="activity-editor-container">
+                {this.renderSelectedObject()}
+              </div>
+            </elsa-panel>}
         </div>
       </WorkflowDefinitionTunnel.Provider>
     );
