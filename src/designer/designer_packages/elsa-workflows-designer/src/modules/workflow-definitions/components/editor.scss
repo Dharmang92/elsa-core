@@ -1,6 +1,6 @@
 :root {
   --workflow-editor-width: 480px;
-  --activity-picker-width: 300px;
+  --activity-picker-width: 0px;
   --activity-editor-height: 0px;
 }
 elsa-flowchart {
@@ -34,7 +34,6 @@ elsa-panel.panel-state-expanded.elsa-activity-editor-container {
 }
 
 .activity-picker-closed {
-
   .activity-list {
     display: none;
   }
@@ -45,7 +44,6 @@ elsa-panel.panel-state-expanded.elsa-activity-editor-container {
 }
 
 .object-editor-closed {
-
   .object-editor-container {
     display: none;
   }
@@ -55,9 +53,7 @@ elsa-panel.panel-state-expanded.elsa-activity-editor-container {
   }
 }
 
-
 .activity-editor-closed {
-
   .activity-editor-container {
     display: none;
   }

@@ -1,23 +1,17 @@
-import {Component, Element, Event, EventEmitter, h, Listen, Method, Prop, State, Watch} from '@stencil/core';
-import {debounce, isEqual} from 'lodash';
-import {Container} from "typedi";
-import {PanelPosition, PanelStateChangedArgs} from '../../../components/panel/models';
-import {
-  Activity,
-  ActivityDescriptor,
-  ActivitySelectedArgs,
-  ChildActivitySelectedArgs,
-  ContainerSelectedArgs, GraphUpdatedArgs
-} from '../../../models';
-import {ActivityDriverRegistry, ActivityNameFormatter, EventBus, PluginRegistry, PortProviderRegistry} from '../../../services';
-import {MonacoEditorSettings} from "../../../services/monaco-editor-settings";
-import {WorkflowDefinitionPropsUpdatedArgs, WorkflowDefinitionUpdatedArgs, ActivityUpdatedArgs, WorkflowEditorEventTypes} from "../models/ui";
-import {WorkflowDefinition} from "../models/entities";
-import {WorkflowDefinitionsApi} from "../services/api"
-import WorkflowDefinitionTunnel, {WorkflowDefinitionState} from "../state";
-import {LayoutDirection, UpdateActivityArgs} from "../../flowchart/models";
-import {cloneDeep} from '@antv/x6/lib/util/object/object';
-import {removeGuidsFromPortNames} from '../../../utils/graph';
+import { Component, Element, Event, EventEmitter, h, Listen, Method, Prop, State, Watch } from '@stencil/core';
+import { debounce, isEqual } from 'lodash';
+import { Container } from 'typedi';
+import { PanelPosition, PanelStateChangedArgs } from '../../../components/panel/models';
+import { Activity, ActivityDescriptor, ActivitySelectedArgs, ChildActivitySelectedArgs, ContainerSelectedArgs, GraphUpdatedArgs } from '../../../models';
+import { ActivityDriverRegistry, ActivityNameFormatter, EventBus, PluginRegistry, PortProviderRegistry } from '../../../services';
+import { MonacoEditorSettings } from '../../../services/monaco-editor-settings';
+import { WorkflowDefinitionPropsUpdatedArgs, WorkflowDefinitionUpdatedArgs, ActivityUpdatedArgs, WorkflowEditorEventTypes } from '../models/ui';
+import { WorkflowDefinition } from '../models/entities';
+import { WorkflowDefinitionsApi } from '../services/api';
+import WorkflowDefinitionTunnel, { WorkflowDefinitionState } from '../state';
+import { LayoutDirection, UpdateActivityArgs } from '../../flowchart/models';
+import { cloneDeep } from '@antv/x6/lib/util/object/object';
+import { removeGuidsFromPortNames } from '../../../utils/graph';
 import { WorkflowPropertiesEditorTabs } from '../models/props-editor-tabs';
 
 @Component({
@@ -47,12 +41,13 @@ export class WorkflowDefinitionEditor {
   }
 
   @Prop() workflowDefinition?: WorkflowDefinition;
-  @Prop({attribute: 'monaco-lib-path'}) monacoLibPath: string;
-  @Event() workflowUpdated: EventEmitter<WorkflowDefinitionUpdatedArgs>
+  @Prop({ attribute: 'monaco-lib-path' }) monacoLibPath: string;
+  @Event() workflowUpdated: EventEmitter<WorkflowDefinitionUpdatedArgs>;
   @State() private workflowDefinitionState: WorkflowDefinition;
   @State() private selectedActivity?: Activity;
   @State() private workflowVersions: Array<WorkflowDefinition> = [];
   @State() private isWorkflowVisible: boolean = true;
+  @State() selectedTabIndex: number = 0;
 
   @Watch('monacoLibPath')
   private handleMonacoLibPath(value: string) {
@@ -65,7 +60,7 @@ export class WorkflowDefinitionEditor {
     await this.importWorkflow(value);
   }
 
-  @Listen('resize', {target: 'window'})
+  @Listen('resize', { target: 'window' })
   private async handleResize() {
     await this.updateLayout();
   }
@@ -102,25 +97,24 @@ export class WorkflowDefinitionEditor {
       await this.updateSelectedActivity();
     });
 
-    await this.eventBus.emit(WorkflowEditorEventTypes.WorkflowDefinition.Imported, this, {workflowDefinition});
+    await this.eventBus.emit(WorkflowEditorEventTypes.WorkflowDefinition.Imported, this, { workflowDefinition });
   }
 
   // Updates the workflow definition without importing it into the designer.
   @Method()
   async updateWorkflowDefinition(workflowDefinition: WorkflowDefinition): Promise<void> {
-    if(this.workflowDefinitionState != workflowDefinition) {
+    if (this.workflowDefinitionState != workflowDefinition) {
       this.workflowDefinitionState = workflowDefinition;
 
       window.requestAnimationFrame(async () => {
         await this.updateSelectedActivity();
-        await this.eventBus.emit(WorkflowEditorEventTypes.WorkflowEditor.WorkflowLoaded, this, {workflowEditor: this, workflowDefinition: workflowDefinition});
+        await this.eventBus.emit(WorkflowEditorEventTypes.WorkflowEditor.WorkflowLoaded, this, { workflowEditor: this, workflowDefinition: workflowDefinition });
       });
     }
   }
 
   @Method()
   async newWorkflow(): Promise<WorkflowDefinition> {
-
     const newRoot = await this.flowchart.newRoot();
 
     const workflowDefinition: WorkflowDefinition = {
@@ -131,8 +125,8 @@ export class WorkflowDefinitionEditor {
       version: 1,
       isLatest: true,
       isPublished: false,
-      materializerName: 'Json'
-    }
+      materializerName: 'Json',
+    };
 
     await this.updateWorkflowDefinition(workflowDefinition);
     return workflowDefinition;
@@ -153,7 +147,7 @@ export class WorkflowDefinitionEditor {
     const args: UpdateActivityArgs = {
       activity: activity,
       id: activity.id,
-      originalId: activity.id
+      originalId: activity.id,
     };
     await this.updateActivityInternal(args);
   }
@@ -164,22 +158,10 @@ export class WorkflowDefinitionEditor {
   }
 
   async componentDidLoad() {
-    if (!this.workflowDefinitionState)
-      await this.newWorkflow();
-    else
-      await this.importWorkflow(this.workflowDefinitionState);
+    if (!this.workflowDefinitionState) await this.newWorkflow();
+    else await this.importWorkflow(this.workflowDefinitionState);
 
-    await this.eventBus.emit(WorkflowEditorEventTypes.WorkflowEditor.Ready, this, {workflowEditor: this, workflowDefinition: this.workflowDefinitionState});
-  }
-
-  private renderSelectedObject = () => {
-    if (!!this.selectedActivity)
-      return <elsa-activity-properties-editor
-        activity={this.selectedActivity}
-        variables={this.workflowDefinitionState.variables}
-        outputs={this.workflowDefinitionState.outputs}
-        workflowDefinitionId={this.workflowDefinitionState.definitionId}
-        onActivityUpdated={e => this.onActivityUpdated(e)}/>;
+    await this.eventBus.emit(WorkflowEditorEventTypes.WorkflowEditor.Ready, this, { workflowEditor: this, workflowDefinition: this.workflowDefinitionState });
   }
 
   private getWorkflowDefinitionInternal = async (): Promise<WorkflowDefinition> => {
@@ -192,7 +174,7 @@ export class WorkflowDefinitionEditor {
   private saveChanges = async (): Promise<void> => {
     const updatedWorkflowDefinition = this.workflowDefinitionState;
 
-    if(!updatedWorkflowDefinition.isLatest) {
+    if (!updatedWorkflowDefinition.isLatest) {
       console.debug('Workflow definition is not the latest version. Changes will not be saved.');
       return;
     }
@@ -202,7 +184,7 @@ export class WorkflowDefinitionEditor {
       if (updatedWorkflowDefinition.isPublished) {
         updatedWorkflowDefinition.version = this.workflowVersions.find(v => v.isLatest).version;
       }
-      this.workflowUpdated.emit({workflowDefinition: this.workflowDefinitionState});
+      this.workflowUpdated.emit({ workflowDefinition: this.workflowDefinitionState });
     }
 
     await this.updateSelectedActivity();
@@ -211,37 +193,37 @@ export class WorkflowDefinitionEditor {
   // To prevent redundant post requests to server, save changes only if there is a difference
   // between existing workflow definition on server side and updated workflow definition on client side.
   private hasWorkflowDefinitionAnyUpdatedData = async (updatedWorkflowDefinition: WorkflowDefinition): Promise<boolean> => {
-        const existingWorkflowDefinition = await this.workflowDefinitionApi.get({definitionId: updatedWorkflowDefinition.definitionId, versionOptions: {version: updatedWorkflowDefinition.version}});
+    const existingWorkflowDefinition = await this.workflowDefinitionApi.get({
+      definitionId: updatedWorkflowDefinition.definitionId,
+      versionOptions: { version: updatedWorkflowDefinition.version },
+    });
     const updatedWorkflowDefinitionClone = cloneDeep(updatedWorkflowDefinition);
 
     removeGuidsFromPortNames(updatedWorkflowDefinitionClone.root);
 
     return !isEqual(existingWorkflowDefinition, updatedWorkflowDefinitionClone);
-  }
+  };
 
   private updateLayout = async () => {
     await this.flowchart.updateLayout();
   };
 
   private updateContainerLayout = async (panelClassName: string, panelExpanded: boolean) => {
-
-    if (panelExpanded)
-      this.container.classList.remove(panelClassName);
-    else
-      this.container.classList.toggle(panelClassName, true);
+    if (panelExpanded) this.container.classList.remove(panelClassName);
+    else this.container.classList.toggle(panelClassName, true);
 
     await this.updateLayout();
-  }
+  };
 
   private updateActivityInternal = async (args: UpdateActivityArgs) => {
     args.updatePorts = true; // TODO: Make this configurable from a activity plugin.
     await this.flowchart.updateActivity(args);
     this.saveChangesDebounced();
-  }
+  };
 
-  private onActivityPickerPanelStateChanged = async (e: PanelStateChangedArgs) => await this.updateContainerLayout('activity-picker-closed', e.expanded)
-  private onWorkflowEditorPanelStateChanged = async (e: PanelStateChangedArgs) => await this.updateContainerLayout('object-editor-closed', e.expanded)
-  private onActivityEditorPanelStateChanged = async (e: PanelStateChangedArgs) => await this.updateContainerLayout('activity-editor-closed', e.expanded)
+  private onActivityPickerPanelStateChanged = async (e: PanelStateChangedArgs) => await this.updateContainerLayout('activity-picker-closed', e.expanded);
+  private onWorkflowEditorPanelStateChanged = async (e: PanelStateChangedArgs) => await this.updateContainerLayout('object-editor-closed', e.expanded);
+  private onActivityEditorPanelStateChanged = async (e: PanelStateChangedArgs) => await this.updateContainerLayout('activity-editor-closed', e.expanded);
 
   private onDragOver = (e: DragEvent) => {
     e.preventDefault();
@@ -254,7 +236,7 @@ export class WorkflowDefinitionEditor {
     await this.flowchart.addActivity({
       descriptor: activityDescriptor,
       x: e.pageX,
-      y: e.pageY
+      y: e.pageY,
     });
   };
 
@@ -268,28 +250,29 @@ export class WorkflowDefinitionEditor {
     const args: UpdateActivityArgs = {
       activity: e.detail.activity,
       id: e.detail.newId ?? e.detail.originalId ?? e.detail.activity.id,
-      originalId: e.detail.originalId ?? e.detail.activity.id
+      originalId: e.detail.originalId ?? e.detail.activity.id,
     };
 
     await this.updateActivityInternal(args);
-  }
+  };
 
   private onWorkflowPropsUpdated = (e: CustomEvent<WorkflowDefinitionPropsUpdatedArgs>) => {
     this.saveChangesDebounced();
 
-    if(e.detail.updatedTab == WorkflowPropertiesEditorTabs.Variables){
+    if (e.detail.updatedTab == WorkflowPropertiesEditorTabs.Variables) {
       const currentSelectedActivity = this.selectedActivity;
       this.selectedActivity = null;
       this.selectedActivity = currentSelectedActivity;
     }
-  }
+  };
 
   private async onActivitySelected(e: CustomEvent<ActivitySelectedArgs>) {
     this.selectedActivity = e.detail.activity;
+    this.selectedTabIndex = 2;
   }
 
   private async onChildActivitySelected(e: CustomEvent<ChildActivitySelectedArgs>) {
-    const {childActivity} = e.detail;
+    const { childActivity } = e.detail;
     this.selectedActivity = childActivity;
   }
 
@@ -299,28 +282,27 @@ export class WorkflowDefinitionEditor {
   }
 
   private async updateSelectedActivity() {
-    if (!!this.selectedActivity)
-      this.selectedActivity = await this.flowchart.getActivity(this.selectedActivity.id);
+    if (!!this.selectedActivity) this.selectedActivity = await this.flowchart.getActivity(this.selectedActivity.id);
   }
 
   private onVersionSelected = async (e: CustomEvent<WorkflowDefinition>) => {
     const workflowToView = e.detail;
-    const workflowDefinition = await this.workflowDefinitionApi.get({definitionId: workflowToView.definitionId, versionOptions: {version: workflowToView.version}});
+    const workflowDefinition = await this.workflowDefinitionApi.get({ definitionId: workflowToView.definitionId, versionOptions: { version: workflowToView.version } });
     await this.importWorkflow(workflowDefinition);
   };
 
   private onDeleteVersionClicked = async (e: CustomEvent<WorkflowDefinition>) => {
     const workflowToDelete = e.detail;
-    await this.workflowDefinitionApi.deleteVersion({definitionId: workflowToDelete.definitionId, version: workflowToDelete.version});
-    const latestWorkflowDefinition = await this.workflowDefinitionApi.get({definitionId: workflowToDelete.definitionId, versionOptions: {isLatest: true}});
+    await this.workflowDefinitionApi.deleteVersion({ definitionId: workflowToDelete.definitionId, version: workflowToDelete.version });
+    const latestWorkflowDefinition = await this.workflowDefinitionApi.get({ definitionId: workflowToDelete.definitionId, versionOptions: { isLatest: true } });
     await this.loadWorkflowVersions();
     await this.importWorkflow(latestWorkflowDefinition);
   };
 
   private onRevertVersionClicked = async (e: CustomEvent<WorkflowDefinition>) => {
     const workflowToRevert = e.detail;
-    await this.workflowDefinitionApi.revertVersion({definitionId: workflowToRevert.definitionId, version: workflowToRevert.version});
-    const workflowDefinition = await this.workflowDefinitionApi.get({definitionId: workflowToRevert.definitionId, versionOptions: {isLatest: true}});
+    await this.workflowDefinitionApi.revertVersion({ definitionId: workflowToRevert.definitionId, version: workflowToRevert.version });
+    const workflowDefinition = await this.workflowDefinitionApi.get({ definitionId: workflowToRevert.definitionId, versionOptions: { isLatest: true } });
     await this.loadWorkflowVersions();
     await this.importWorkflow(workflowDefinition);
   };
@@ -331,76 +313,94 @@ export class WorkflowDefinitionEditor {
     this.isWorkflowVisible = isChecked;
   }
 
+  private onTabSelected = (e: Event, index: number) => {
+    e.preventDefault();
+    this.selectedTabIndex = index;
+  };
+
+  private onContainerSelected = (e: CustomEvent<ContainerSelectedArgs>) => {
+    this.selectedTabIndex = 1;
+  };
+
   render() {
     const workflowDefinition = this.workflowDefinitionState;
-    const isWorkflowVisible = this.isWorkflowVisible;
 
     const state: WorkflowDefinitionState = {
-      workflowDefinition: this.workflowDefinitionState
+      workflowDefinition: this.workflowDefinitionState,
     };
+
+    const selectedTabIndex = this.selectedTabIndex;
+    const selectedCss = 'border-blue-500 text-blue-600';
+    const defaultCss = 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+    const isActiveTab = (i: number) => (selectedTabIndex == i ? selectedCss : defaultCss);
 
     return (
       <WorkflowDefinitionTunnel.Provider state={state}>
-        <div class="absolute inset-0" ref={el => this.container = el}>
-          <elsa-workflow-definition-editor-toolbar zoomToFit={this.onZoomToFit} onAutoLayout={(e: CustomEvent<LayoutDirection>) => this.onAutoLayout(e.detail)}/>
-          <elsa-panel
-            class="elsa-activity-picker-container z-30"
-            position={PanelPosition.Left}
-            onExpandedStateChanged={e => this.onActivityPickerPanelStateChanged(e.detail)}>
-            <elsa-workflow-definition-editor-toolbox ref={el => this.toolbox = el}/>
+        <div class="absolute inset-0" ref={el => (this.container = el)}>
+          <elsa-workflow-definition-editor-toolbar zoomToFit={this.onZoomToFit} onAutoLayout={(e: CustomEvent<LayoutDirection>) => this.onAutoLayout(e.detail)} />
+
+          <elsa-panel class="elsa-workflow-editor-container z-30" position={PanelPosition.Right} onExpandedStateChanged={e => this.onWorkflowEditorPanelStateChanged(e.detail)}>
+            <div class="activity-list  absolute inset-0 overflow-hidden">
+              <div class="h-full flex flex-col">
+                <div class="border-b border-gray-200">
+                  <nav class="-mb-px flex" aria-label="Tabs">
+                    <a href="#" onClick={e => this.onTabSelected(e, 0)} class={`${isActiveTab(0)} w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm`}>
+                      Activities
+                    </a>
+                    <a href="#" onClick={e => this.onTabSelected(e, 1)} class={`${isActiveTab(1)} w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm`}>
+                      Workflow Properties
+                    </a>
+                    <a href="#" onClick={e => this.onTabSelected(e, 2)} class={`${isActiveTab(2)} w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm`}>
+                      Activity Properties
+                    </a>
+                  </nav>
+                </div>
+
+                <div class="flex-1 relative">
+                  <div class="absolute inset-0 overflow-y-scroll">
+                    {/* activities panel */}
+                    <elsa-workflow-definition-editor-toolbox-activities class={selectedTabIndex == 0 ? '' : 'hidden'} />
+
+                    {/* workflow properties */}
+                    <elsa-workflow-definition-properties-editor
+                      class={selectedTabIndex == 1 ? '' : 'hidden'}
+                      workflowDefinition={this.workflowDefinitionState}
+                      workflowVersions={this.workflowVersions}
+                      onWorkflowPropsUpdated={e => this.onWorkflowPropsUpdated(e)}
+                      onVersionSelected={e => this.onVersionSelected(e)}
+                      onDeleteVersionClicked={e => this.onDeleteVersionClicked(e)}
+                      onRevertVersionClicked={e => this.onRevertVersionClicked(e)}
+                    />
+
+                    {/* activity properties */}
+                    {this.selectedActivity ? (
+                      <elsa-activity-properties-editor
+                        class={this.selectedTabIndex == 2 ? '' : 'hidden'}
+                        activity={this.selectedActivity}
+                        variables={this.workflowDefinitionState.variables}
+                        outputs={this.workflowDefinitionState.outputs}
+                        workflowDefinitionId={this.workflowDefinitionState.definitionId}
+                        onActivityUpdated={e => this.onActivityUpdated(e)}
+                      />
+                    ) : undefined}
+                  </div>
+                </div>
+              </div>
+            </div>
           </elsa-panel>
+
+          {/* flowchart area */}
           <elsa-flowchart
-            ref={el => this.flowchart = el}
+            ref={el => (this.flowchart = el)}
             rootActivity={workflowDefinition.root}
             interactiveMode={true}
             onActivitySelected={e => this.onActivitySelected(e)}
             onChildActivitySelected={e => this.onChildActivitySelected(e)}
             onGraphUpdated={e => this.onGraphUpdated(e)}
             onDragOver={e => this.onDragOver(e)}
-            onDrop={e => this.onDrop(e)}/>
-
-          {isWorkflowVisible ? <elsa-panel
-            class="elsa-workflow-editor-container z-30"
-            position={PanelPosition.Right}
-            onExpandedStateChanged={e => this.onWorkflowEditorPanelStateChanged(e.detail)}>
-            <div class="object-editor-container">
-              <div class="flex space-x-2 items-center z-10 absolute" style={{right: '1rem', top: '0.5rem'}}>
-                <input
-                  id="workflowToggler"
-                  type="checkbox"
-                  checked={isWorkflowVisible}
-                  onChange={e => this.toggleWorkflowView(e)}
-                  class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                />
-                <label htmlFor="workflowToggler" class="cursor-pointer select-none font-medium text-gray-700">Show Workflow Properties</label>
-              </div>
-              <elsa-workflow-definition-properties-editor
-                workflowDefinition={this.workflowDefinitionState}
-                workflowVersions={this.workflowVersions}
-                onWorkflowPropsUpdated={e => this.onWorkflowPropsUpdated(e)}
-                onVersionSelected={e => this.onVersionSelected(e)}
-                onDeleteVersionClicked={e => this.onDeleteVersionClicked(e)}
-                onRevertVersionClicked={e => this.onRevertVersionClicked(e)}
-              />
-            </div>
-            </elsa-panel> : <elsa-panel
-              class="elsa-workflow-editor-container"
-              position={PanelPosition.Right}
-              onExpandedStateChanged={e => this.onActivityEditorPanelStateChanged(e.detail)}>
-              <div class="flex space-x-2 items-center z-10 absolute" style={{right: '1rem', top: '0.5rem'}}>
-                <input
-                  id="workflowToggler"
-                  type="checkbox"
-                  checked={isWorkflowVisible}
-                  onChange={e => this.toggleWorkflowView(e)}
-                  class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                />
-                <label htmlFor="workflowToggler" class="cursor-pointer select-none font-medium text-gray-700">Show Workflow Properties</label>
-              </div>
-              <div class="activity-editor-container">
-                {this.renderSelectedObject()}
-              </div>
-            </elsa-panel>}
+            onDrop={e => this.onDrop(e)}
+            onContainerSelected={e => this.onContainerSelected(e)}
+          />
         </div>
       </WorkflowDefinitionTunnel.Provider>
     );
