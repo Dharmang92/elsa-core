@@ -52,7 +52,7 @@ export class WorkflowDefinitionEditor {
   @State() private workflowDefinitionState: WorkflowDefinition;
   @State() private selectedActivity?: Activity;
   @State() private workflowVersions: Array<WorkflowDefinition> = [];
-  @State() private isWorkflowVisible: boolean = false;
+  @State() private isWorkflowVisible: boolean = true;
 
   @Watch('monacoLibPath')
   private handleMonacoLibPath(value: string) {
