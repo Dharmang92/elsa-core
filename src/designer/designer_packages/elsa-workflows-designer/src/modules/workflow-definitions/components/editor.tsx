@@ -13,6 +13,8 @@ import { LayoutDirection, UpdateActivityArgs } from '../../flowchart/models';
 import { cloneDeep } from '@antv/x6/lib/util/object/object';
 import { removeGuidsFromPortNames } from '../../../utils/graph';
 import { WorkflowPropertiesEditorTabs } from '../models/props-editor-tabs';
+import workflowStore from '../../../data/workflow-store';
+import studioComponentStore from '../../../data/studio-component-store';
 
 @Component({
   tag: 'elsa-workflow-definition-editor',
@@ -38,6 +40,10 @@ export class WorkflowDefinitionEditor {
     this.portProviderRegistry = Container.get(PortProviderRegistry);
     this.saveChangesDebounced = debounce(this.saveChanges, 1000);
     this.workflowDefinitionApi = Container.get(WorkflowDefinitionsApi);
+
+    workflowStore.onChange('childWorkflowDefinitionId', () => {
+      this.showParentBtn = !!workflowStore.state.childWorkflowDefinitionId && workflowStore.state.parentWorkflowDefinitionId != workflowStore.state.childWorkflowDefinitionId;
+    });
   }
 
   @Prop() workflowDefinition?: WorkflowDefinition;
@@ -46,8 +52,8 @@ export class WorkflowDefinitionEditor {
   @State() private workflowDefinitionState: WorkflowDefinition;
   @State() private selectedActivity?: Activity;
   @State() private workflowVersions: Array<WorkflowDefinition> = [];
-  @State() private isWorkflowVisible: boolean = true;
   @State() selectedTabIndex: number = 0;
+  @State() private showParentBtn: boolean = false;
 
   @Watch('monacoLibPath')
   private handleMonacoLibPath(value: string) {
@@ -307,12 +313,6 @@ export class WorkflowDefinitionEditor {
     await this.importWorkflow(workflowDefinition);
   };
 
-  private toggleWorkflowView(e: Event) {
-    const checkBox = e.target as HTMLInputElement;
-    const isChecked = checkBox.checked;
-    this.isWorkflowVisible = isChecked;
-  }
-
   private onTabSelected = (e: Event, index: number) => {
     e.preventDefault();
     this.selectedTabIndex = index;
@@ -321,6 +321,22 @@ export class WorkflowDefinitionEditor {
   private onContainerSelected = (e: CustomEvent<ContainerSelectedArgs>) => {
     this.selectedTabIndex = 1;
   };
+
+  private async backToParentWorkflow() {
+    const data = await this.workflowDefinitionApi.get({
+      definitionId: workflowStore.state.parentWorkflowDefinitionId,
+    });
+    workflowStore.state.childWorkflowDefinitionId = workflowStore.state.parentWorkflowDefinitionId;
+    this.showParentWorkflow(data);
+  }
+
+  public showParentWorkflow = (workflowDefinition: WorkflowDefinition) => {
+    studioComponentStore.activeComponentFactory = () => <elsa-workflow-definition-editor workflowDefinition={workflowDefinition} />;
+  };
+
+  private onActivityOpened() {
+    this.selectedTabIndex = 1;
+  }
 
   render() {
     const workflowDefinition = this.workflowDefinitionState;
@@ -345,7 +361,7 @@ export class WorkflowDefinitionEditor {
                 <div class="border-b border-gray-200">
                   <nav class="-mb-px flex" aria-label="Tabs">
                     <a href="#" onClick={e => this.onTabSelected(e, 0)} class={`${isActiveTab(0)} w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm`}>
-                      Activities
+                      Catalog
                     </a>
                     <a href="#" onClick={e => this.onTabSelected(e, 1)} class={`${isActiveTab(1)} w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm`}>
                       Workflow Properties
@@ -370,6 +386,8 @@ export class WorkflowDefinitionEditor {
                       onVersionSelected={e => this.onVersionSelected(e)}
                       onDeleteVersionClicked={e => this.onDeleteVersionClicked(e)}
                       onRevertVersionClicked={e => this.onRevertVersionClicked(e)}
+                      showParentBtn={this.showParentBtn}
+                      onParentBtnClicked={e => this.backToParentWorkflow()}
                     />
 
                     {/* activity properties */}
@@ -400,6 +418,7 @@ export class WorkflowDefinitionEditor {
             onDragOver={e => this.onDragOver(e)}
             onDrop={e => this.onDrop(e)}
             onContainerSelected={e => this.onContainerSelected(e)}
+            onActivityOpened={e => this.onActivityOpened()}
           />
         </div>
       </WorkflowDefinitionTunnel.Provider>

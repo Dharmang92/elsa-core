@@ -13,10 +13,12 @@ export class FormPanel {
   @Prop() public tabs: Array<TabDefinition> = [];
   @Prop({mutable: true}) public selectedTabIndex?: number;
   @Prop() public actions: Array<PanelActionDefinition> = [];
+  @Prop() public showParentBtn: boolean;
 
   @Event() public submitted: EventEmitter<FormData>;
   @Event() public selectedTabIndexChanged: EventEmitter<TabChangedArgs>;
   @Event() public actionInvoked: EventEmitter<PanelActionClickArgs>;
+  @Event() public parentBtnClicked: EventEmitter;
 
   public render() {
     return this.renderPanel();
@@ -56,6 +58,13 @@ export class FormPanel {
                       {mainTitle}
                     </h2>
                     {!isNullOrWhitespace(subTitle) ? <h3 class="text-sm text-gray-700">{subTitle}</h3> : undefined}
+                    
+                  </div>
+                  <div>
+                    {this.showParentBtn ?
+                        <button class="btn btn-primary" onClick={() => this.parentBtnClicked.emit()}>
+                          Back to Parent
+                        </button> : undefined}
                   </div>
                 </div>
               </div>)}
